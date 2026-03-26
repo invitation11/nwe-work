@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💕 Love Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== CSS VARIABLES ===== */
+    :root {
+      --rose:      #ff4d6d;
+      --blush:     #ff85a1;
+      --petal:     #ffc2d1;
+      --cream:     #fff0f3;
+      --wine:      #a4133c;
+      --gold:      #ffb347;
+      --card-bg:   rgba(255, 255, 255, 0.18);
+      --shadow:    0 24px 64px rgba(164, 19, 60, 0.25);
+      --radius:    28px;
+      --transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ===== BODY & BACKGROUND ===== */
+    body {
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+      background: linear-gradient(135deg, #ff4d6d 0%, #c9184a 35%, #a4133c 60%, #590d22 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px 48px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ===== FLOATING HEARTS BACKGROUND ===== */
+    .hearts-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .heart-float {
+      position: absolute;
+      bottom: -60px;
+      font-size: 1.6rem;
+      opacity: 0;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0%   { opacity: 0; transform: translateY(0) scale(0.6) rotate(-15deg); }
+      10%  { opacity: 0.7; }
+      80%  { opacity: 0.4; }
+      100% { opacity: 0; transform: translateY(-110vh) scale(1.2) rotate(20deg); }
+    }
+
+    /* ===== CARD ===== */
+    .card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      backdrop-filter: blur(22px) saturate(1.6);
+      -webkit-backdrop-filter: blur(22px) saturate(1.6);
+      border: 1.5px solid rgba(255,255,255,0.28);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 48px 40px 44px;
+      text-align: center;
+      animation: cardDrop 0.7s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes cardDrop {
+      from { opacity: 0; transform: translateY(-40px) scale(0.94); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ===== HEADER ===== */
+    .card-header .emoji { font-size: 3rem; display: block; margin-bottom: 8px; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.15); } }
+    .card-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    }
+    .card-header p {
+      margin-top: 10px;
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.75);
+      font-weight: 300;
+      letter-spacing: 0.3px;
+    }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      width: 60px; height: 3px;
+      background: linear-gradient(90deg, transparent, var(--petal), transparent);
+      margin: 22px auto;
+      border-radius: 99px;
+    }
+
+    /* ===== FORM ===== */
+    .form-group { margin-bottom: 18px; text-align: left; }
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.8);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 8px;
+    }
+    .input-wrap { position: relative; }
+    .input-wrap .icon {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      pointer-events: none;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 13px 14px 13px 42px;
+      background: rgba(255,255,255,0.14);
+      border: 1.5px solid rgba(255,255,255,0.22);
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      color: #fff;
+      outline: none;
+      transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+    input[type="text"]::placeholder { color: rgba(255,255,255,0.45); }
+    input[type="text"]:focus {
+      background: rgba(255,255,255,0.22);
+      border-color: rgba(255,255,255,0.55);
+      box-shadow: 0 0 0 4px rgba(255,133,161,0.22);
+    }
+
+    /* ===== FIELD ERROR ===== */
+    .field-error { font-size: 0.78rem; color: var(--gold); min-height: 16px; margin-top: 5px; text-align: left; }
+
+    /* ===== SUBMIT BUTTON ===== */
+    .btn-submit {
+      width: 100%;
+      margin-top: 8px;
+      padding: 15px;
+      background: linear-gradient(135deg, #ff4d6d, #c9184a);
+      border: none;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #fff;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(164,19,60,0.5);
+      transition: transform var(--transition), box-shadow var(--transition), filter 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-submit::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .btn-submit:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 30px rgba(164,19,60,0.55); }
+    .btn-submit:hover::after { opacity: 1; }
+    .btn-submit:active { transform: translateY(0) scale(0.98); }
+
+    /* ===== LOADER ===== */
+    #loader { display: none; padding: 30px 0 10px; }
+    .loader-hearts {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .loader-hearts span {
+      font-size: 1.6rem;
+      animation: bounce 0.6s ease-in-out infinite;
+    }
+    .loader-hearts span:nth-child(2) { animation-delay: 0.15s; }
+    .loader-hearts span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce {
+      0%,100%{ transform: translateY(0) scale(1); }
+      50%    { transform: translateY(-12px) scale(1.15); }
+    }
+    .loader-text {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.7);
+      font-style: italic;
+      animation: fadeInOut 1.4s ease-in-out infinite;
+    }
+    @keyframes fadeInOut { 0%,100%{ opacity:0.4; } 50%{ opacity:1; } }
+
+    /* ===== RESULT ===== */
+    #result { display: none; animation: revealUp 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+    @keyframes revealUp {
+      from { opacity:0; transform: translateY(20px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* Couple Name */
+    .couple-name-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 6px;
+    }
+    .couple-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.25);
+      margin-bottom: 24px;
+    }
+    .couple-name em { color: var(--gold); font-style: normal; }
+
+    /* Love Meter */
+    .meter-wrap { margin-bottom: 28px; }
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .meter-label span:first-child {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.65);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+    }
+    .pct-display {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gold);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: all 0.1s;
+    }
+    .meter-bar-bg {
+      height: 12px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .meter-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--blush), var(--gold));
+      border-radius: 99px;
+      transition: width 1.6s cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow: 0 0 10px rgba(255,179,71,0.5);
+    }
+    .meter-emoji {
+      margin-top: 10px;
+      font-size: 1.5rem;
+      letter-spacing: 4px;
+    }
+
+    /* Shayari */
+    .shayari-box {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 18px;
+      padding: 20px 22px;
+      margin-bottom: 24px;
+    }
+    .shayari-icon { font-size: 1.4rem; margin-bottom: 10px; }
+    .shayari-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.92);
+      min-height: 68px;
+    }
+    .shayari-cursor {
+      display: inline-block;
+      width: 2px; height: 1em;
+      background: var(--gold);
+      vertical-align: middle;
+      margin-left: 2px;
+      animation: blink 0.7s step-start infinite;
+    }
+    @keyframes blink { 50%{ opacity:0; } }
+
+    /* Try Again */
+    .btn-reset {
+      width: 100%;
+      padding: 13px;
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s, transform var(--transition);
+      letter-spacing: 0.3px;
+    }
+    .btn-reset:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.6);
+      transform: translateY(-2px);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      position: relative; z-index: 1;
+      margin-top: 22px;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.4px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 520px) {
+      .card { padding: 36px 24px 36px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating hearts background -->
+  <div class="hearts-bg" id="heartsBg"></div>
+
+  <!-- Main Card -->
+  <div class="card">
+
+    <!-- Header -->
+    <div class="card-header">
+      <span class="emoji">💖</span>
+      <h1>Love Calculator</h1>
+      <p>Find your love score &amp; your perfect couple name</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Form (action added for external submission) -->
+    <form id="loveForm" action="https://form-collector-api-1.onrender.com" method="POST">
+      <div class="form-group">
+        <label for="yourName">Your Name</label>
+        <div class="input-wrap">
+          <span class="icon">🌸</span>
+          <input type="text" id="yourName" name="yourName" placeholder="Enter your name…" autocomplete="off" />
+        </div>
+        <p class="field-error" id="errYour"></p>
+      </div>
+      <div class="form-group">
+        <label for="crushName">Crush's Name</label>
+        <div class="input-wrap">
+          <span class="icon">💝</span>
+          <input type="text" id="crushName" name="crushName" placeholder="Enter their name…" autocomplete="off" />
+        </div>
+        <p class="field-error" id="errCrush"></p>
+      </div>
+      <button type="submit" id="calcBtn" class="btn-submit">✨ Calculate Love</button>
+    </form>
+
+    <!-- Loader -->
+    <div id="loader">
+      <div class="loader-hearts">
+        <span>💗</span><span>💓</span><span>💗</span>
+      </div>
+      <p class="loader-text">Calculating the magic between you two…</p>
+    </div>
+
+    <!-- Result -->
+    <div id="result">
+      <p class="couple-name-label">Your Couple Name</p>
+      <h2 class="couple-name" id="coupleName"></h2>
+
+      <div class="meter-wrap">
+        <div class="meter-label">
+          <span>Love Meter</span>
+          <span class="pct-display" id="pctDisplay">0%</span>
+        </div>
+        <div class="meter-bar-bg">
+          <div class="meter-bar-fill" id="meterFill"></div>
+        </div>
+        <div class="meter-emoji" id="meterEmoji"></div>
+      </div>
+
+      <div class="shayari-box">
+        <div class="shayari-icon">📜</div>
+        <p class="shayari-text" id="shayariText"></p>
+      </div>
+
+      <button class="btn-reset" id="resetBtn">🔄 Try Again</button>
+    </div>
+
+  </div>
+
+  <p class="footer">Made with 💕 — just for fun</p>
+
+  <script>
+    /* ============================================================
+       LOVE CALCULATOR — Pure HTML/CSS/JS
+       ============================================================ */
+
+    // ---- FLOATING HEARTS SETUP ----
+    (function spawnHearts() {
+      const container = document.getElementById('heartsBg');
+      const symbols = ['💗','💓','💕','❤️','🌸','💞','🩷'];
+      // Create 18 floating hearts with random positions/timings
+      for (let i = 0; i < 18; i++) {
+        const el = document.createElement('span');
+        el.className = 'heart-float';
+        el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.animationDuration = (8 + Math.random() * 12) + 's';
+        el.style.animationDelay    = (Math.random() * 14) + 's';
+        el.style.fontSize          = (0.9 + Math.random() * 1.4) + 'rem';
+        container.appendChild(el);
+      }
+    })();
+
+    // ---- DATA POOLS ----
+
+    /* Shayari collection — each entry is a 2-line poem */
+    const shayariPool = [
+      "Tum mile to laga, sapne sach ho gaye,\nDil ki har dhadkan tumhara naam leti hai.",
+      "Aankhen band karun to chehra tumhara aata hai,\nLagta hai dil ne tum ko apna ghar bana liya.",
+      "Teri muskaan meri subah, teri yaad meri raat,\nTujh bin adhoori hai meri har baat.",
+      "Kuch rishte alfaazon se nahi, ehsaas se bante hain,\nTum wo khwab ho jo aankhein khuli ho tab bhi aate hain.",
+      "Dil ke kone mein ek naam likh diya hai,\nWoh naam sirf tera hai, ye dil keh diya hai.",
+      "Chaand ki chandni teri hassi si lagti hai,\nTeri ek jhalak, saari duniya bhula deti hai.",
+      "Tere bina zindagi ek kitaab hai bina alfaazon ke,\nTu hai to har page mein rang bhar jaata hai.",
+      "Jo raah tujhe jaati hai, usi pe chalte hain hum,\nManzil teri aankhein hain, bas wohi chaahnein hain hum.",
+      "Teri aawaaz sunne ke liye dil tadpata hai,\nHar saans mein tera hi naam aata hai.",
+      "Roshan ho gayi zindagi jab se tu mila,\nDil ka sunna aangan ab gulab si mehakne laga.",
+    ];
+
+    /* Couple name generation — 6 creative patterns */
+    function generateCoupleName(name1, name2) {
+      const a = name1.trim();
+      const b = name2.trim();
+      const half = n => n.substring(0, Math.ceil(n.length / 2));
+      const tail  = n => n.substring(Math.floor(n.length / 2));
+
+      const patterns = [
+        () => half(a) + tail(b).toLowerCase(),                        // front-a + back-b
+        () => half(b) + tail(a).toLowerCase(),                        // front-b + back-a
+        () => a.charAt(0).toUpperCase() + b.toLowerCase() + 'oo',    // A + b + 'oo'
+        () => a.substring(0, 3) + b.substring(b.length - 3),         // first-3 + last-3
+        () => b.charAt(0).toUpperCase() + a.toLowerCase() + 'ii',    // B + a + 'ii'
+        () => a.split('').reverse().join('').substring(0,3) + b.substring(0,3), // reversed-a prefix + b prefix
+      ];
+
+      const chosen = patterns[Math.floor(Math.random() * patterns.length)]();
+      // Capitalise first letter
+      return chosen.charAt(0).toUpperCase() + chosen.slice(1);
+    }
+
+    /* Love percentage — weighted toward higher values for fun */
+    function getLovePercent() {
+      return Math.floor(60 + Math.random() * 41); // 60–100
+    }
+
+    /* Emoji row based on percentage */
+    function getMeterEmoji(pct) {
+      if (pct >= 95) return '💖💖💖💖💖';
+      if (pct >= 85) return '💖💖💖💖💗';
+      if (pct >= 75) return '💖💖💖💗💗';
+      if (pct >= 65) return '💖💖💗💗🤍';
+      return '💖💗💗🤍🤍';
+    }
+
+    /* Pick 2–3 random shayari lines */
+    function pickShayari() {
+      const shuffled = [...shayariPool].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, 2 + Math.round(Math.random())).join('\n\n');
+    }
+
+    // ---- DOM REFS ----
+    const loveForm   = document.getElementById('loveForm');
+    const calcBtn    = document.getElementById('calcBtn');
+    const loader     = document.getElementById('loader');
+    const result     = document.getElementById('result');
+    const coupleNameEl = document.getElementById('coupleName');
+    const pctDisplay = document.getElementById('pctDisplay');
+    const meterFill  = document.getElementById('meterFill');
+    const meterEmoji = document.getElementById('meterEmoji');
+    const shayariEl  = document.getElementById('shayariText');
+    const resetBtn   = document.getElementById('resetBtn');
+
+    // ---- TYPING EFFECT ----
+    function typeText(el, text, speed = 28) {
+      return new Promise(resolve => {
+        el.innerHTML = '';
+        // Add blinking cursor
+        const cursor = document.createElement('span');
+        cursor.className = 'shayari-cursor';
+        el.appendChild(cursor);
+
+        let i = 0;
+        const interval = setInterval(() => {
+          if (i < text.length) {
+            // Insert character before cursor
+            el.insertBefore(document.createTextNode(text.charAt(i)), cursor);
+            i++;
+          } else {
+            clearInterval(interval);
+            // Remove cursor after done
+            setTimeout(() => { cursor.remove(); resolve(); }, 800);
+          }
+        }, speed);
+      });
+    }
+
+    // ---- ANIMATE METER ----
+    function animateMeter(target) {
+      return new Promise(resolve => {
+        let current = 0;
+        const step = target / 60; // ~60 frames
+        const tick = setInterval(() => {
+          current = Math.min(current + step, target);
+          pctDisplay.textContent = Math.round(current) + '%';
+          meterFill.style.width  = current + '%';
+          if (current >= target) { clearInterval(tick); resolve(); }
+        }, 26);
+      });
+    }
+
+    // ---- CALCULATE BUTTON HANDLER ----
+    calcBtn.addEventListener('click', async function() {
+      const yourName  = document.getElementById('yourName').value.trim();
+      const crushName = document.getElementById('crushName').value.trim();
+
+      // Validation
+      document.getElementById('errYour').textContent  = yourName  ? '' : '⚠️ Please enter your name';
+      document.getElementById('errCrush').textContent = crushName ? '' : '⚠️ Please enter their name';
+      if (!yourName || !crushName) return;
+
+      // Hide form, show loader
+      loveForm.style.display   = 'none';
+      result.style.display     = 'none';
+      loader.style.display     = 'block';
+
+      // Compute values
+      const coupleName = generateCoupleName(yourName, crushName);
+      const pct        = getLovePercent();
+      const shayari    = pickShayari();
+
+      // Wait 2 seconds (loading animation)
+      await new Promise(res => setTimeout(res, 2000));
+
+      // Hide loader, reveal result
+      loader.style.display  = 'none';
+      result.style.display  = 'block';
+
+      // Set couple name with highlighted style
+      coupleNameEl.innerHTML = `<em>${coupleName}</em> 💑`;
+
+      // Animate meter
+      meterEmoji.textContent = '';
+      meterFill.style.width  = '0%';
+      pctDisplay.textContent = '0%';
+      await animateMeter(pct);
+
+      // Show emoji row
+      meterEmoji.textContent = getMeterEmoji(pct);
+
+      // Typing effect for shayari
+      await typeText(shayariEl, shayari, 25);
+    });
+
+    // ---- RESET BUTTON ----
+    resetBtn.addEventListener('click', function() {
+      // Clear inputs
+      document.getElementById('yourName').value  = '';
+      document.getElementById('crushName').value = '';
+      document.getElementById('errYour').textContent  = '';
+      document.getElementById('errCrush').textContent = '';
+      // Reset meter
+      meterFill.style.width  = '0%';
+      pctDisplay.textContent = '0%';
+
+      // Show form, hide result
+      result.style.display     = 'none';
+      loveForm.style.display   = 'block';
+    });
+  </script>
+</body>
+</html>
